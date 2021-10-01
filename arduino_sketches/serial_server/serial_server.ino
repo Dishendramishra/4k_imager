@@ -26,7 +26,7 @@ void setup(void) {
 
 void loop() {
 
-  while (Serial.available() > 0) {
+  if (Serial.available() > 0) {
 
     String str = Serial.readString();
 
@@ -39,16 +39,31 @@ void loop() {
       Serial.println("done");
     }
     else if (str.startsWith("ma")) {
+      flag = true;
       long int pos = str.substring(2).toInt();
       stepper.moveTo(pos);
-      stepper.runToPosition();
+//      stepper.runToPosition();
       Serial.println("done");
     }
     else if (str.startsWith("mr")) {
+      flag = true;
       long int pos = str.substring(2).toInt();
       stepper.move(pos);
-      stepper.runToPosition();
+//      stepper.runToPosition();
       Serial.println("done");
     }
+    else if(str.startsWith("stop")){
+      flag = false;
+      stepper.stop();
+    }
+    else if(str.startsWith("steps")){
+      Serial.print("steps_left: ");
+      Serial.println(stepper.distanceToGo());
+    }
   }
+  if( flag &&  stepper.distanceToGo() != 0){
+      stepper.run();
+      Serial.print("s");
+      Serial.println(stepper.distanceToGo());
+    }
 }
