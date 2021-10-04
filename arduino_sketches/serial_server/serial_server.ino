@@ -24,7 +24,7 @@ void setup(void) {
   stepper.setMaxSpeed(6400);
 }
 
-void loop() {
+void loop() { 
 
   if (Serial.available() > 0) {
 
@@ -34,22 +34,26 @@ void loop() {
       Serial.print("sensor val: ");
       Serial.println(analogRead(A0));
     }
+    else if (str.startsWith("ser")) {
+      int angle = str.substring(3).toInt();
+      Serial.println("done");
+    }
     else if (str.startsWith("home")) {
       go_home();
       Serial.println("done");
     }
-    else if (str.startsWith("ma")) {
+    else if (str.startsWith("maf1_")) {
       flag = true;
-      long int pos = str.substring(2).toInt();
+      long int pos = str.substring(5).toInt();
       stepper.moveTo(pos);
-//      stepper.runToPosition();
+      stepper.runToPosition();
       Serial.println("done");
     }
-    else if (str.startsWith("mr")) {
+    else if (str.startsWith("mrf1_")) {
       flag = true;
-      long int pos = str.substring(2).toInt();
+      long int pos = str.substring(5).toInt();
       stepper.move(pos);
-//      stepper.runToPosition();
+      stepper.runToPosition();
       Serial.println("done");
     }
     else if(str.startsWith("stop")){
@@ -60,10 +64,13 @@ void loop() {
       Serial.print("steps_left: ");
       Serial.println(stepper.distanceToGo());
     }
-  }
-  if( flag &&  stepper.distanceToGo() != 0){
-      stepper.run();
-      Serial.print("s");
-      Serial.println(stepper.distanceToGo());
+    else{
+      Serial.println("invalid cmd!");
     }
+  }
+//  if( flag &&  stepper.distanceToGo() != 0){
+//      stepper.run();
+//      Serial.print("s");
+//      Serial.println(stepper.distanceToGo());
+//    }
 }
