@@ -123,37 +123,16 @@ class Ui(QMainWindow):
     # +===============================================+
     # |             Thread Functions                  |
     # +===============================================+
-    def move_servo(self, str_cmd, led):
-        worker = Worker(self.move_servo_thread, [False, False, False], str_cmd, led)
-        self.threadpool.start(worker)
-        # self.fw1[btn_id].setPixmap(self.led_on)
-
     def move_servo_thread(self, str_cmd, led):
-        self.ser.write(str_cmd.encode())
+        self.send_cmd(str_cmd)
         self.read_output()
-
         self.fw1[led].setPixmap(self.led_on)
-
         self.enable_buttons()
 
         self.serial_busy = False
 
-    def nd_filter(self):
-        btn_id = self.btngrp_nd.checkedId()
-        if btn_id == 1:
-            str_cmd = "ser90"
-        else:
-            str_cmd = "ser0"
-
-        self.lbl_nd_set.setPixmap(self.led_off)
-        self.lbl_nd_unset.setPixmap(self.led_off)
-        self.disable_buttons()
-
-        worker = Worker(self.nd_filter_thread, [False, False, False], str_cmd, btn_id)
-        self.threadpool.start(worker)
-
     def nd_filter_thread(self, str_cmd, btn_id):
-        self.ser.write(str_cmd.encode())
+        self.send_cmd(str_cmd)
         self.read_output()
         self.nd_leds[btn_id].setPixmap(self.led_on)
         self.enable_buttons()
@@ -219,13 +198,30 @@ class Ui(QMainWindow):
         btn_id = self.btngrp_fw1.checkedId()
 
         if btn_id == 1:
-            self.move_servo("maf1_1600", 1)
+            str_cmd = "maf1_1600"
         elif btn_id == 2:
-            self.move_servo("maf1_3200", 2)
+            str_cmd = "maf1_3200"
         elif btn_id == 3:
-            self.move_servo("maf1_4800", 3)
+            str_cmd = "maf1_4800"
         elif btn_id == 4:
-            self.move_servo("maf1_6400", 4)
+            str_cmd = "maf1_6400"
+
+        worker = Worker(self.move_servo_thread, [False, False, False], str_cmd, btn_id)
+        self.threadpool.start(worker)
+
+    def nd_filter(self):
+        btn_id = self.btngrp_nd.checkedId()
+        if btn_id == 1:
+            str_cmd = "ser90"
+        else:
+            str_cmd = "ser0"
+
+        self.lbl_nd_set.setPixmap(self.led_off)
+        self.lbl_nd_unset.setPixmap(self.led_off)
+        self.disable_buttons()
+
+        worker = Worker(self.nd_filter_thread, [False, False, False], str_cmd, btn_id)
+        self.threadpool.start(worker)
     # +===============================================+
 
     def fw1_all_off(self):
