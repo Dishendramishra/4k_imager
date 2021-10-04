@@ -1,7 +1,7 @@
 <RCC>
   <qresource prefix="leds">
-    <file>resources/icons/leds/blue.png</file>
-    <file>resources/icons/leds/green.png</file>
-    <file>resources/icons/leds/off.png</file>
+    <file>images/leds/blue.png</file>
+    <file>images/leds/green.png</file>
+    <file>images/leds/off.png</file>
   </qresource>
 </RCC>
