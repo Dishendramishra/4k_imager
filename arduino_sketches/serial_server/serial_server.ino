@@ -1,5 +1,6 @@
 #include <AccelStepper.h>
 #include <Servo.h>
+#include <EEPROM.h>
 
 #define mot1_dirPin 2
 #define mot1_stepPin 3
@@ -16,6 +17,11 @@ AccelStepper stepper1 = AccelStepper(motorInterfaceType, mot1_stepPin, mot1_dirP
 AccelStepper stepper2 = AccelStepper(motorInterfaceType, mot2_stepPin, mot2_dirPin);
 
 bool flag = true;
+
+long int step1_pos = 0;
+int step1_loc = 0;
+long int step2_pos = 0;
+int step2_loc = 10;
 
 void home_stepper1() {
   while (analogRead(A1) < 1000) {
@@ -35,6 +41,11 @@ void home_stepper2() {
   stepper2.setCurrentPosition(0);
 }
 
+void save_motos_pos(){
+   EEPROM.put(step1_loc, stepper1.currentPosition());
+   EEPROM.put(step2_loc, stepper2.currentPosition()); 
+}
+
 void setup(void) {
   Serial.begin(115200);
   while (!Serial);
@@ -47,6 +58,19 @@ void setup(void) {
 
   stepper2.setAcceleration(6400);
   stepper2.setMaxSpeed(6400);
+
+  // Check if EEPROM is used first time
+  if(EEPROM.read(1023) != 123){
+    EEPROM.write(1023, 123);
+    EEPROM.put(step1_loc, 0);
+    EEPROM.put(step2_loc, 0);
+  }
+  else{
+    EEPROM.get(step1_loc, step1_pos);
+    EEPROM.get(step2_loc, step2_pos);
+    stepper1.setCurrentPosition(step1_pos);
+    stepper2.setCurrentPosition(step2_pos);
+  }
 }
 
 void loop() { 
@@ -56,8 +80,10 @@ void loop() {
     String str = Serial.readString();
 
     if (str.startsWith("is")) {
-      Serial.print("sensor val: ");
+      Serial.print("sensor1: ");
       Serial.println(analogRead(A0));
+      Serial.print("sensor2: ");
+      Serial.println(analogRead(A1));
     }
     else if (str.startsWith("ser")) {
       int angle = str.substring(3).toInt();
@@ -77,6 +103,7 @@ void loop() {
       long int pos = str.substring(5).toInt();
       stepper1.moveTo(pos);
       stepper1.runToPosition();
+      save_motos_pos();
       Serial.println("done");
     }
     else if (str.startsWith("mrf1_")) {
@@ -84,6 +111,7 @@ void loop() {
       long int pos = str.substring(5).toInt();
       stepper1.move(pos);
       stepper1.runToPosition();
+      save_motos_pos();
       Serial.println("done");
     }
     else if (str.startsWith("maf2_")) {
@@ -91,6 +119,7 @@ void loop() {
       long int pos = str.substring(5).toInt();
       stepper2.moveTo(pos);
       stepper2.runToPosition();
+      save_motos_pos();
       Serial.println("done");
     }
     else if (str.startsWith("mrf2_")) {
@@ -98,6 +127,7 @@ void loop() {
       long int pos = str.substring(5).toInt();
       stepper2.move(pos);
       stepper2.runToPosition();
+      save_motos_pos();
       Serial.println("done");
     }
     else if(str.startsWith("stop")){
@@ -105,10 +135,20 @@ void loop() {
       stepper1.stop();
       stepper2.stop();
     }
-    // else if(str.startsWith("steps")){
-    //   Serial.print("steps_left: ");
-    //   Serial.println(stepper1.distanceToGo());
-    // }
+    else if(str.startsWith("readmem")){
+        EEPROM.get(step1_loc, step1_pos);
+        EEPROM.get(step2_loc, step2_pos);
+        Serial.print("stepper1: ");
+        Serial.println(step1_pos);
+        Serial.print("stepper2: ");
+        Serial.println(step2_pos);
+    }
+    else if(str.startsWith("readmotors")){
+        Serial.print("stepper1: ");
+        Serial.println(stepper1.currentPosition());
+        Serial.print("stepper2: ");
+        Serial.println(stepper2.currentPosition());
+    }
     else{
       Serial.println("invalid cmd!");
     }
