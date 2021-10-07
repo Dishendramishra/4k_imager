@@ -20,8 +20,19 @@ bool flag = true;
 
 long int step1_pos = 0;
 int step1_loc = 0;
+long int step1_total_steps = 3200;
+
+//  { 0, 1, 2, 3, 4 } = { unknown, A, B, C, D}
+int step1_filter = 0;   
+int step1_filter_loc = 10;
+
 long int step2_pos = 0;
-int step2_loc = 10;
+int step2_loc = 20;
+long int step2_total_steps = 1600;
+
+//  { 0, 1, 2, 3, 4 } = { unknown, A, B, C, D}
+int step2_filter = 0;
+int step2_filter_loc = 30;
 
 void home_stepper1() {
   while (analogRead(A1) < 1000) {
@@ -30,6 +41,7 @@ void home_stepper1() {
 //    Serial.println(analogRead(A1));
   }
   stepper1.setCurrentPosition(0);
+  save_motos_pos();
 }
 
 void home_stepper2() {
@@ -39,6 +51,12 @@ void home_stepper2() {
 //    Serial.println(analogRead(A2));
   }
   stepper2.setCurrentPosition(0);
+  save_motos_pos();
+}
+
+void save_filters_pos(){
+    EEPROM.put(step1_filter_loc, step1_filter);
+    EEPROM.put(step2_filter_loc, step2_filter);
 }
 
 void save_motos_pos(){
@@ -58,16 +76,20 @@ void setup(void) {
 
   stepper2.setAcceleration(6400);
   stepper2.setMaxSpeed(6400);
-
   // Check if EEPROM is used first time
   if(EEPROM.read(1023) != 123){
     EEPROM.write(1023, 123);
     EEPROM.put(step1_loc, 0);
     EEPROM.put(step2_loc, 0);
+    EEPROM.put(step1_filter_loc, 0);
+    EEPROM.put(step2_filter_loc, 0);
+
   }
   else{
     EEPROM.get(step1_loc, step1_pos);
     EEPROM.get(step2_loc, step2_pos);
+    EEPROM.get(step1_filter, step1_filter_loc);
+    EEPROM.get(step2_filter, step2_filter_loc);
     stepper1.setCurrentPosition(step1_pos);
     stepper2.setCurrentPosition(step2_pos);
   }
@@ -85,6 +107,76 @@ void loop() {
       Serial.print("sensor2: ");
       Serial.println(analogRead(A1));
     }
+    else if (str.startsWith("filters")) {
+      Serial.print(step1_filter);
+      Serial.println(step2_filter);
+    }
+    else if (str.startsWith("s1")) {
+      int filter = str.substring(2).toInt();
+      if (filter == 1){
+        stepper1.moveTo(step1_total_steps/4);
+        stepper1.runToPosition();
+        step1_filter = 1;
+        Serial.println("done");
+      }
+      else if (filter == 2){
+        stepper1.moveTo((step1_total_steps/4)*2);
+        stepper1.runToPosition();
+        step1_filter = 2;
+        Serial.println("done");
+      }
+      else if (filter == 3){
+        stepper1.moveTo((step1_total_steps/4)*3);
+        stepper1.runToPosition();
+        step1_filter = 3;
+        Serial.println("done");
+      }
+      else if (filter == 4){
+        stepper1.moveTo(0);
+        stepper1.runToPosition();
+        step1_filter = 4;
+        Serial.println("done");
+      }
+      else{
+        Serial.println("invalid cmd!");
+      }
+      save_filters_pos();
+      save_motos_pos();
+      
+    }
+    else if (str.startsWith("s2")) {
+      int filter = str.substring(2).toInt();
+      if (filter == 1){
+        stepper2.moveTo(step2_total_steps/4);
+        stepper2.runToPosition();
+        step2_filter = 1;
+        Serial.println("done");
+      }
+      else if (filter == 2){
+        stepper2.moveTo((step2_total_steps/4)*2);
+        stepper2.runToPosition();
+        step2_filter = 2;
+        Serial.println("done");
+      }
+      else if (filter == 3){
+        stepper2.moveTo((step2_total_steps/4)*3);
+        stepper2.runToPosition();
+        step2_filter = 3;
+        Serial.println("done");
+      }
+      else if (filter == 4){
+        stepper2.moveTo(0);
+        stepper2.runToPosition();
+        step2_filter = 4;
+        Serial.println("done");
+      }
+      else{
+        Serial.println("invalid cmd!");
+      }
+      save_filters_pos();
+      save_motos_pos();
+      
+    }
     else if (str.startsWith("ser")) {
       int angle = str.substring(3).toInt();
       servo.write(angle);
@@ -98,7 +190,7 @@ void loop() {
       home_stepper2();
       Serial.println("done");
     }
-    else if (str.startsWith("maf1_")) {
+    else if (str.startsWith("mas1_")) {
       flag = true;
       long int pos = str.substring(5).toInt();
       stepper1.moveTo(pos);
@@ -106,7 +198,7 @@ void loop() {
       save_motos_pos();
       Serial.println("done");
     }
-    else if (str.startsWith("mrf1_")) {
+    else if (str.startsWith("mrs1_")) {
       flag = true;
       long int pos = str.substring(5).toInt();
       stepper1.move(pos);
@@ -114,7 +206,7 @@ void loop() {
       save_motos_pos();
       Serial.println("done");
     }
-    else if (str.startsWith("maf2_")) {
+    else if (str.startsWith("mas2_")) {
       flag = true;
       long int pos = str.substring(5).toInt();
       stepper2.moveTo(pos);
@@ -122,7 +214,7 @@ void loop() {
       save_motos_pos();
       Serial.println("done");
     }
-    else if (str.startsWith("mrf2_")) {
+    else if (str.startsWith("mrs2_")) {
       flag = true;
       long int pos = str.substring(5).toInt();
       stepper2.move(pos);
@@ -149,8 +241,19 @@ void loop() {
         Serial.print("stepper2: ");
         Serial.println(stepper2.currentPosition());
     }
+    else if(str == "clear"){
+      for (int i = 0 ; i < EEPROM.length() ; i++) {
+        EEPROM.write(i, 0);
+      }
+      Serial.println("EEPROM cleared!");
+      EEPROM.put(step1_loc, 0);
+      EEPROM.put(step2_loc, 0);
+      EEPROM.put(step1_filter_loc, 0);
+      EEPROM.put(step2_filter_loc, 0);
+    }
     else{
-      Serial.println("invalid cmd!");
+      Serial.print("invalid cmd! : ");
+      Serial.println(str);
     }
   }
 //  if( flag &&  stepper1.distanceToGo() != 0){
