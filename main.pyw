@@ -86,7 +86,7 @@ class Ui(QMainWindow):
 
         self.nd_leds = {1 : self.lbl_nd_set, 2 : self.lbl_nd_unset}
 
-        self.led_on  = QPixmap(":/leds/images/leds/blue.png")
+        self.led_on  = QPixmap(":/leds/images/leds/green.png")
         self.led_off = QPixmap(":/leds/images/leds/off.png")
         self.ser = None
 
