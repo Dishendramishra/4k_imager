@@ -94,6 +94,8 @@ class Ui(QMainWindow):
         self.ui_settings()
         self.show()
 
+        self.load_filters_pos()
+
     def closeEvents(self):
         print("closing")
     
@@ -118,7 +120,7 @@ class Ui(QMainWindow):
         self.btngrp_nd = QButtonGroup()
         self.btngrp_nd.addButton(self.btn_nd_set, 1)
         self.btngrp_nd.addButton(self.btn_nd_unset, 2)
-        self.btngrp_nd.buttonClicked.connect(self.nd_filter)
+        self.btngrp_nd.buttonClicked.connect(self.load_filters_pos)
 
     # +===============================================+
     # |             Thread Functions                  |
@@ -126,7 +128,7 @@ class Ui(QMainWindow):
     def move_servo_thread(self, str_cmd, led):
         self.send_cmd(str_cmd)
         self.read_output()
-        if str_cmd.startswith("maf1") or str_cmd.startswith("homestep1"):
+        if str_cmd.startswith("s1") or str_cmd.startswith("homestep1"):
             self.fw1[led].setPixmap(self.led_on)
         else:
             self.fw2[led].setPixmap(self.led_on)
@@ -141,6 +143,16 @@ class Ui(QMainWindow):
         self.enable_buttons()
         
         self.serial_busy = False
+
+    def load_filters_pos_thread(self):
+        self.disable_buttons()
+        sleep(1)
+        self.send_cmd("filters")
+        output = self.read_output()
+        self.fw1[int(output[0])].setPixmap(self.led_on)
+        self.fw2[int(output[1])].setPixmap(self.led_on)
+        # print("output: ", output)
+        self.enable_buttons()
     # +===============================================+
 
 
@@ -194,6 +206,10 @@ class Ui(QMainWindow):
     # +===============================================+
     # |           Button Click Functions              |
     # +===============================================+
+    def load_filters_pos(self):
+        worker = Worker(self.load_filters_pos_thread, [False, False, False])
+        self.threadpool.start(worker)
+    
     def filter_wheel_1(self, btn):
         self.disable_buttons()
 
@@ -201,13 +217,13 @@ class Ui(QMainWindow):
         btn_id = self.btngrp_fw1.checkedId()
 
         if btn_id == 1:
-            str_cmd = "maf1_1600"
+            str_cmd = "s11"
         elif btn_id == 2:
-            str_cmd = "maf1_3200"
+            str_cmd = "s12"
         elif btn_id == 3:
-            str_cmd = "maf1_4800"
+            str_cmd = "s13"
         elif btn_id == 4:
-            str_cmd = "homestep1"
+            str_cmd = "s14"
 
         worker = Worker(self.move_servo_thread, [False, False, False], str_cmd, btn_id)
         self.threadpool.start(worker)
@@ -219,13 +235,13 @@ class Ui(QMainWindow):
         btn_id = self.btngrp_fw2.checkedId()
 
         if btn_id == 1:
-            str_cmd = "maf2_1600"
+            str_cmd = "s21"
         elif btn_id == 2:
-            str_cmd = "maf2_3200"
+            str_cmd = "s22"
         elif btn_id == 3:
-            str_cmd = "maf2_4800"
+            str_cmd = "s23"
         elif btn_id == 4:
-            str_cmd = "homestep2"
+            str_cmd = "s24"
 
         worker = Worker(self.move_servo_thread, [False, False, False], str_cmd, btn_id)
         self.threadpool.start(worker)

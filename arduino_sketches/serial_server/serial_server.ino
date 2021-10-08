@@ -23,15 +23,15 @@ int step1_loc = 0;
 long int step1_total_steps = 3200;
 
 //  { 0, 1, 2, 3, 4 } = { unknown, A, B, C, D}
-int step1_filter = 0;   
+int step1_filter;   
 int step1_filter_loc = 10;
 
 long int step2_pos = 0;
 int step2_loc = 20;
-long int step2_total_steps = 1600;
+long int step2_total_steps = 3200;
 
 //  { 0, 1, 2, 3, 4 } = { unknown, A, B, C, D}
-int step2_filter = 0;
+int step2_filter;
 int step2_filter_loc = 30;
 
 void home_stepper1() {
@@ -69,7 +69,7 @@ void setup(void) {
   while (!Serial);
 
   servo.attach(servo_pin);
-  servo.write(0);
+  // servo.write(0);
   
   stepper1.setAcceleration(6400);
   stepper1.setMaxSpeed(6400);
@@ -78,6 +78,7 @@ void setup(void) {
   stepper2.setMaxSpeed(6400);
   // Check if EEPROM is used first time
   if(EEPROM.read(1023) != 123){
+    // Serial.println("EEPROM not written!");
     EEPROM.write(1023, 123);
     EEPROM.put(step1_loc, 0);
     EEPROM.put(step2_loc, 0);
@@ -86,12 +87,18 @@ void setup(void) {
 
   }
   else{
+    // Serial.println("EEPROM settings found :)");
     EEPROM.get(step1_loc, step1_pos);
     EEPROM.get(step2_loc, step2_pos);
-    EEPROM.get(step1_filter, step1_filter_loc);
-    EEPROM.get(step2_filter, step2_filter_loc);
+    EEPROM.get(step1_filter_loc, step1_filter);
+    EEPROM.get(step2_filter_loc, step2_filter);
     stepper1.setCurrentPosition(step1_pos);
     stepper2.setCurrentPosition(step2_pos);
+    // Serial.print("step1_pos: "); Serial.println(step1_pos);
+    // Serial.print("step2_pos: "); Serial.println(step2_pos);
+    // Serial.print("step1_filter: "); Serial.println(step1_filter);
+    // Serial.print("step2_filter: "); Serial.println(step2_filter);
+
   }
 }
 
@@ -108,8 +115,14 @@ void loop() {
       Serial.println(analogRead(A1));
     }
     else if (str.startsWith("filters")) {
+      // Serial.print("Vars: ");
       Serial.print(step1_filter);
       Serial.println(step2_filter);
+      // EEPROM.get(step1_filter, step1_filter_loc);
+      // EEPROM.get(step2_filter, step2_filter_loc);
+      // Serial.print("EEPROM: ");
+      // Serial.print(step1_filter);
+      // Serial.println(step2_filter);
     }
     else if (str.startsWith("s1")) {
       int filter = str.substring(2).toInt();
@@ -241,15 +254,20 @@ void loop() {
         Serial.print("stepper2: ");
         Serial.println(stepper2.currentPosition());
     }
-    else if(str == "clear"){
+    else if(str.startsWith("loop")){
+      while(analogRead(A1)<1000 && analogRead(A2)<1000 ){
+        stepper1.move(500);
+        stepper2.move(500);
+        while(stepper1.distanceToGo()>0 && stepper2.distanceToGo()>0){
+          stepper1.run(); stepper2.run();
+        }
+      }
+    }
+    else if(str.startsWith("clear")){
       for (int i = 0 ; i < EEPROM.length() ; i++) {
         EEPROM.write(i, 0);
       }
       Serial.println("EEPROM cleared!");
-      EEPROM.put(step1_loc, 0);
-      EEPROM.put(step2_loc, 0);
-      EEPROM.put(step1_filter_loc, 0);
-      EEPROM.put(step2_filter_loc, 0);
     }
     else{
       Serial.print("invalid cmd! : ");
