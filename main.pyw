@@ -2,6 +2,7 @@ from PyQt5 import uic
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+import os
 
 import resources
 
@@ -160,6 +161,16 @@ class Ui(QMainWindow):
     # |             Serial Functions                  |
     # +===============================================+
     def connect_ser(self):
+
+        if not os.environ.get("IMAGER_PORT"):
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Critical)
+            msg_box.setText("Environment Var IMAGER_PORT not set!")
+            msg_box.setWindowTitle("Environment Var Error!")
+            msg_box.setStandardButtons(QMessageBox.Ok)
+            msg_box.exec_()
+            self.close()
+
         ports = serial.tools.list_ports.comports()
         for port, desc, hwid in sorted(ports):
             # print("{}: {} [{}]".format(port, desc, hwid))
