@@ -163,7 +163,7 @@ class Ui(QMainWindow):
         ports = serial.tools.list_ports.comports()
         for port, desc, hwid in sorted(ports):
             # print("{}: {} [{}]".format(port, desc, hwid))
-            if "SER=75630313836351A020F1" in hwid:
+            if os.environ["IMAGER_PORT"] in hwid:
                 self.ser = serial.Serial(port, 115200)
                 print("Serial connected on: {}".format(port))
 
