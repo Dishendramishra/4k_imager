@@ -75,14 +75,16 @@ class Ui(QMainWindow):
                     1 : self.lbl_fw1_a,
                     2 : self.lbl_fw1_b,
                     3 : self.lbl_fw1_c,
-                    4 : self.lbl_fw1_d
+                    4 : self.lbl_fw1_d,
+                    5 : self.lbl_fw1_e
                     }
 
         self.fw2 = {
                     1 : self.lbl_fw2_a,
                     2 : self.lbl_fw2_b,
                     3 : self.lbl_fw2_c,
-                    4 : self.lbl_fw2_d
+                    4 : self.lbl_fw2_d,
+                    5 : self.lbl_fw2_e
                     }
 
         self.nd_leds = {1 : self.lbl_nd_set, 2 : self.lbl_nd_unset}
@@ -95,7 +97,7 @@ class Ui(QMainWindow):
         self.ui_settings()
         self.show()
 
-        self.load_filters_pos()
+        # self.load_filters_pos()
 
     def closeEvents(self):
         print("closing")
@@ -109,6 +111,7 @@ class Ui(QMainWindow):
         self.btngrp_fw1.addButton(self.btn_fw1_b,2)
         self.btngrp_fw1.addButton(self.btn_fw1_c,3)
         self.btngrp_fw1.addButton(self.btn_fw1_d,4)
+        self.btngrp_fw1.addButton(self.btn_fw1_home,5)
         self.btngrp_fw1.buttonClicked.connect(self.filter_wheel_1)
 
         self.btngrp_fw2 = QButtonGroup()
@@ -116,12 +119,13 @@ class Ui(QMainWindow):
         self.btngrp_fw2.addButton(self.btn_fw2_b,2)
         self.btngrp_fw2.addButton(self.btn_fw2_c,3)
         self.btngrp_fw2.addButton(self.btn_fw2_d,4)
+        self.btngrp_fw2.addButton(self.btn_fw2_home,5)
         self.btngrp_fw2.buttonClicked.connect(self.filter_wheel_2)
 
         self.btngrp_nd = QButtonGroup()
         self.btngrp_nd.addButton(self.btn_nd_set, 1)
         self.btngrp_nd.addButton(self.btn_nd_unset, 2)
-        self.btngrp_nd.buttonClicked.connect(self.load_filters_pos)
+        self.btngrp_nd.buttonClicked.connect(self.nd_filter)
 
     # +===============================================+
     # |             Thread Functions                  |
@@ -227,6 +231,8 @@ class Ui(QMainWindow):
         self.fw1_all_off()
         btn_id = self.btngrp_fw1.checkedId()
 
+        print(f"btn_id : {btn_id}")
+
         if btn_id == 1:
             str_cmd = "s11"
         elif btn_id == 2:
@@ -235,6 +241,8 @@ class Ui(QMainWindow):
             str_cmd = "s13"
         elif btn_id == 4:
             str_cmd = "s14"
+        elif btn_id == 5:
+            str_cmd = "homestep1"
 
         worker = Worker(self.move_servo_thread, [False, False, False], str_cmd, btn_id)
         self.threadpool.start(worker)
@@ -253,6 +261,8 @@ class Ui(QMainWindow):
             str_cmd = "s23"
         elif btn_id == 4:
             str_cmd = "s24"
+        elif btn_id == 5:
+            str_cmd = "homestep2"
 
         worker = Worker(self.move_servo_thread, [False, False, False], str_cmd, btn_id)
         self.threadpool.start(worker)
@@ -260,9 +270,9 @@ class Ui(QMainWindow):
     def nd_filter(self):
         btn_id = self.btngrp_nd.checkedId()
         if btn_id == 1:
-            str_cmd = "ser90"
+            str_cmd = "ser65"
         else:
-            str_cmd = "ser0"
+            str_cmd = "ser8"
 
         self.lbl_nd_set.setPixmap(self.led_off)
         self.lbl_nd_unset.setPixmap(self.led_off)
@@ -277,12 +287,14 @@ class Ui(QMainWindow):
         self.lbl_fw1_b.setPixmap(self.led_off)
         self.lbl_fw1_c.setPixmap(self.led_off)
         self.lbl_fw1_d.setPixmap(self.led_off)
+        self.lbl_fw1_e.setPixmap(self.led_off)
     
     def fw2_all_off(self):
         self.lbl_fw2_a.setPixmap(self.led_off)
         self.lbl_fw2_b.setPixmap(self.led_off)
         self.lbl_fw2_c.setPixmap(self.led_off)
         self.lbl_fw2_d.setPixmap(self.led_off)
+        self.lbl_fw2_e.setPixmap(self.led_off)
 
     def toggle_led(self, led, target):
         if led == self.led_on:
@@ -295,10 +307,12 @@ class Ui(QMainWindow):
         self.btn_fw1_b.setDisabled(True)
         self.btn_fw1_c.setDisabled(True)
         self.btn_fw1_d.setDisabled(True)
+        self.btn_fw1_home.setDisabled(True)
         self.btn_fw2_a.setDisabled(True)
         self.btn_fw2_b.setDisabled(True)
         self.btn_fw2_c.setDisabled(True)
         self.btn_fw2_d.setDisabled(True)
+        self.btn_fw2_home.setDisabled(True)
         self.btn_nd_set.setDisabled(True)
         self.btn_nd_unset.setDisabled(True)
 
@@ -307,10 +321,12 @@ class Ui(QMainWindow):
         self.btn_fw1_b.setDisabled(False)
         self.btn_fw1_c.setDisabled(False)
         self.btn_fw1_d.setDisabled(False)
+        self.btn_fw1_home.setDisabled(False)
         self.btn_fw2_a.setDisabled(False)
         self.btn_fw2_b.setDisabled(False)
         self.btn_fw2_c.setDisabled(False)
         self.btn_fw2_d.setDisabled(False)
+        self.btn_fw2_home.setDisabled(False)
         self.btn_nd_set.setDisabled(False)
         self.btn_nd_unset.setDisabled(False)
 
