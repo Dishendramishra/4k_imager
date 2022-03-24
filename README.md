@@ -1,5 +1,34 @@
 ![imager](https://user-images.githubusercontent.com/6905938/158106347-0d11167c-c0fb-4471-83a5-79874a11198f.png)
 
+---
+
+## System Configurations: :warning:
+
+**Must** define an environment variable called `IMAGER_PORT`, which points to the port number of the arduino board connected to the system.
+
+
+
+### Installing pip
+
+If you don't have pip installed, use the file `get-pip.py` in this repo to install pip.
+
+```shell
+python get-pip.py
+```
+
+
+
+### Installing 4k_imager
+
+Use the file `install.py` in this repo to install the software. Make sure that you have pip installed, before executing the command below .
+
+```shell
+python install.py
+```
+
+
+
+### Miscellaneous
 
 Converting `.qrc `  to regular `.py`  file.
 
@@ -8,18 +37,6 @@ pyrcc5 resources.qrc -o resources.py
 ```
 
 
-
-Then import like a regular python file
-
-```shell
-import resources
-```
-
-
-
-### :warning: **System Configurations: :warning:**
-
-**Must** define an environment variable called `IMAGER_PORT`, which points to the port number of the arduino board connected to the system.
 
 ---
 
